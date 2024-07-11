@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Flight Search</title>
+    <style>
+      body {
+        background-color: #868686;
+        color: white;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      form {
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #444;
+        border-radius: 8px;
+        position: relative; /* Make the form a relative container */
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      select,
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      input[type="submit"] {
+        background-color: #09d4d2;
+        color: white;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        border: none;
+        outline: none;
+        border-radius: 4px;
+
+        width: auto;
+        font-size: 14px;
+        position: absolute; /* Position the button absolutely */
+        bottom: 2px; /* 20px from the bottom of the form */
+        left: 20px; /* 20px from the left side of the form */
+      }
+      input[type="submit"]:hover {
+        background-color: #08b0af;
+      }
+      .result {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .card {
+        background-color: green;
+        padding: 15px;
+        margin: 10px;
+        border-radius: 8px;
+        width: calc(33.33% - 20px);
+        color: white;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      .card img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px 8px 0 0;
+      }
+      .card p {
+        margin: 5px 0;
+      }
+      .arrow {
+        display: inline-block;
+        margin: 0 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form id="searchForm">
+        <p>Choose Origin and Destination Airports:</p>
+        <div class="form-group">
+          <label for="origin">Origin:</label>
+          <select id="origin" name="origin">
+            <option value="JFK">JFK</option>
+            <option value="DEL">DEL</option>
+            <option value="SYD">SYD</option>
+            <option value="BOM">BOM</option>
+            <option value="BNE">BNE</option>
+            <option value="BLR">BLR</option>
+            
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="destination">Destination:</label>
+          <select id="destination" name="destination">
+            <option value="JFK">JFK</option>
+            <option value="DEL">DEL</option>
+            <option value="SYD">SYD</option>
+            <option value="LHR">LHR</option>
+            <option value="CDG">CDG</option>
+            <option value="DOH">DOH</option>
+            <option value="SIN">SIN</option>
+           
+            
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cabin_selection">Cabin Selection:</label>
+          <select id="cabin_selection" name="cabin_selection">
+            <option value="economy">Economy</option>
+            <option value="business">Business</option>
+            <option value="first">First</option>
+          </select>
+        </div>
+        <input type="submit" value="Search" />
+      </form>
+      <div id="results" class="result"></div>
+    </div>
+
+    <script>
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const origin = document.getElementById("origin").value;
+          const destination = document.getElementById("destination").value;
+          const cabin_selection =
+            document.getElementById("cabin_selection").value;
+
+          fetch(
+            `/search/?origin=${origin}&destination=${destination}&cabin_selection=${cabin_selection}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              const resultsDiv = document.getElementById("results");
+              resultsDiv.innerHTML = "";
+
+              
+              const today = new Date();
+              const tomorrow = new Date();
+              tomorrow.setDate(today.getDate() + 1);
+
+              // Format the dates to yyyy-mm-dd
+              const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+              };
+
+              const todayDateString = formatDate(today);
+              const tomorrowDateString = formatDate(tomorrow);
+
+              if (data.data.length === 0) {
+                resultsDiv.innerHTML =
+                  "<p>No results found. Try another search route.</p>";
+              } else {
+                data.data.forEach((item) => {
+                  const card = document.createElement("div");
+                  card.classList.add("card");
+
+                  const getValueOrDefault = (value) => value ?? "N/A";
+
+                  card.innerHTML = `
+                <img src="path_to_image.jpg" alt="logo">
+                                                <h1> ${getValueOrDefault(
+                                                  item.partner_program
+                                                )}</h1>
+
+                <p>${origin} <span class="arrow">&#8594;</span>  ${destination}</p>
+                <p>${todayDateString} - ${tomorrowDateString}</p>
+                
+                <p><h1>N/A</h1>Min Business Miles </p>
+                <p > <h2>${getValueOrDefault(
+                  item.min_economy_miles
+                )}</h2>  + $${getValueOrDefault(
+                    item.min_economy_tax
+                  )} min economy miles</p></p>
+                
+                
+                
+                <p><h1>N/A</h1> Min First Miles</p>
+                
+              `;
+                  resultsDiv.appendChild(card);
+                });
+              }
+            });
+        });
+    </script>
+  </body>
+</html>
